@@ -317,7 +317,7 @@ const plural=(n,w)=>`${n.toLocaleString()} ${w}${n===1?'':'s'}`;
 const KEY='bibleJourney.v1';
 /* Group sharing server: paste your Firebase Realtime Database URL between the quotes,
    for example 'https://bible-journey-default-rtdb.asia-southeast1.firebasedatabase.app' */
-const SYNC_URL='';
+const SYNC_URL='https://bible-journey-837f9-default-rtdb.asia-southeast1.firebasedatabase.app';
 const SYNC=SYNC_URL.replace(/\/+$/,'');
 const defaults=()=>({name:'',plan:null,began:null,read:{},theme:'auto',font:19,tr:'1',ver:'KJV',reminder:{on:false,time:'06:00'},completedOn:null,tickMode:'tick'});
 let S=null;

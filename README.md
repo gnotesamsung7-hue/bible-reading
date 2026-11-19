@@ -30,14 +30,10 @@ Read the whole Bible on a plan.
 3. **Settings → Pages**: Source "Deploy from a branch", branch `main`, folder `/ (root)`. The web app goes live in a minute or two.
 4. Wait for the green check in **Actions**, then download `BibleJourney.apk` from **Releases**.
 
-## Turn on group sharing (one time)
-Groups pass progress between phones through a free Firebase Realtime Database.
-1. Go to console.firebase.google.com, **Create a project** (for example `bible-journey`). Analytics can be off.
-2. **Build → Realtime Database → Create database**, location **Singapore (asia-southeast1)**, start in **locked mode**.
-3. Open the **Rules** tab, replace everything with the rules below, and click **Publish**.
-4. On the **Data** tab, copy the database URL at the top (it ends in `firebasedatabase.app`).
-5. In this repo, edit `index.html`, find `const SYNC_URL='';`, paste the URL between the quotes, and commit. The web app and a new APK update automatically.
+## Group sharing
+Group progress goes through the Firebase Realtime Database `bible-journey-837f9` (Singapore), already set in `index.html` as `SYNC_URL`.
 
+Security rules in use (Firebase console → Realtime Database → Rules):
 ```json
 {
   "rules": {
@@ -45,14 +41,29 @@ Groups pass progress between phones through a free Firebase Realtime Database.
       "groups": {
         "$code": {
           ".read": true,
-          ".write": true
+          ".write": "$code.matches(/^[A-Z0-9]{6}$/)",
+          "info": {
+            ".validate": "newData.hasChildren(['name', 'leader'])",
+            "name": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "leader": { ".validate": "newData.isString() && newData.val().length <= 20" },
+            "leaderName": { ".validate": "newData.isString() && newData.val().length <= 40" },
+            "created": { ".validate": "newData.isNumber()" },
+            "$other": { ".validate": false }
+          },
+          "members": {
+            "$uid": {
+              ".validate": "$uid.matches(/^[A-Z0-9]{14}$/) && newData.child('name').isString() && newData.child('name').val().length <= 40"
+            }
+          },
+          "removed": { "$uid": { ".validate": "newData.val() === true" } },
+          "$other": { ".validate": false }
         }
       }
     }
   }
 }
 ```
-Anyone with a group's code can see that group's progress, and nobody can list all groups. Only reading progress is shared (name, chapters, streak), never recordings.
+Anyone with a group's code can see that group's progress; nobody can list all groups. Only reading progress is shared (name, chapters, streak), never recordings.
 
 ## Updating
 Edit `index.html` and commit. A new APK builds automatically. It's signed with the same key (`android/app/biblejourney.keystore`), so it installs over the old one and keeps your progress. Don't delete or replace that keystore.
